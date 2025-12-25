@@ -131,7 +131,7 @@ function OnTakeDamage(tData)
 		return;
 
 	const flDamageMultiplier = 5.0;
-	const flHealDivider = 10.0;
+	const flHealDivider = 5.0;
 
 	local iHealth = hAttacker.GetHealth(),
 	iMaxHealth = hAttacker.GetMaxHealth(),
