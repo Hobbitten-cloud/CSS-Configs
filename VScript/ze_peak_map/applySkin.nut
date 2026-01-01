@@ -6,8 +6,6 @@ PrecacheModel("models/player/gaycat/gaycat.mdl")
 // Default skin
 PrecacheModel("models/player/blind_forest/peak1_playermodel.mdl")
 
-Squidgame <- false;
-
 function ApplyDefaultMapSkin() 
 {
 	for(local h;h=Entities.FindByClassname(h,"player");)

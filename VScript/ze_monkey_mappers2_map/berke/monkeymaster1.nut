@@ -86,14 +86,12 @@ aAbilities <-
 		15.0,
 		function()
 		{
-			if (!(hPlayer.GetFlags() & 1))
-			{
-				MapPrintToChat(hPlayer, "Must be on the ground.");
+			if (hPlayer.GetFlags() & 1)
+				return true;
 
-				return false;
-			}
+			MapPrintToChat(hPlayer, "Must be on the ground.");
 
-			return true;
+			return false;
 		},
 		function()
 		{
@@ -189,9 +187,9 @@ function OnPickup()
 	activator.SetHealth(self.GetHealth());
 	iSpawnMaxHealth = self.GetMaxHealth();
 	activator.SetMaxHealth(iSpawnMaxHealth);
-	local vPropOrigin = hProp.GetOrigin(),
-	vPropForward = hProp.GetForwardVector();
-	hProp.SetAbsOrigin(Vector(vPropOrigin.x + vPropForward.x * 32, vPropOrigin.y + vPropForward.y * 32, vPropOrigin.z - 32));
+	local vOrigin = hProp.GetOrigin(),
+	vForward = hProp.GetForwardVector();
+	hProp.SetAbsOrigin(Vector(vOrigin.x + vForward.x * 32, vOrigin.y + vForward.y * 32, vOrigin.z - 32));
 }
 
 function OnTakeDamage(tData)
@@ -244,7 +242,11 @@ function OnGameFrame()
 		}
 
 		else
-			iTakenDamageUntil += (iPlayerHealth - iHealth) * 2;
+		{
+			iTakenDamageUntil += (iPlayerHealth - iHealth) * 2,
+			iHealth = iPlayerHealth;
+			self.SetHealth(iPlayerHealth);
+		}
 	}
 
 	else if (iHealth > iPlayerHealth)
@@ -461,7 +463,7 @@ function OnDeath()
 {
 	local hText = SpawnEntityFromTable("game_text",
 	{
-		channel = 2
+		channel = 3
 	});
 	MarkForPurge(hText);
 	hText.AcceptInput("Display", "", hPlayer, null);
