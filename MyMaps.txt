@@ -24,6 +24,7 @@ Released collab maps
 
 In progress
 - ze_vermintide_2a
+- ze_peak
 
 Unreleased / scrapped
 - ze_expedition_33
