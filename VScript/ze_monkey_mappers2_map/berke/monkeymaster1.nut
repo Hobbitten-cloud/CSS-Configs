@@ -158,6 +158,7 @@ iAnimationStatus <- 0,
 bIsForcedAnimationPlaying <-
 bIsForcedLoopedAnimationPlaying <- false,
 strAnimationDefault <- "",
+iPreviousHeldButtons <-
 iAbilityNumber <- 0,
 iAbilityCount <- aAbilities.len(),
 aCooldownAbilities <- array(0),
@@ -180,7 +181,8 @@ function SetCase()
 
 function OnPickup()
 {
-	hPlayer = activator;
+	hPlayer = activator,
+	iPreviousHeldButtons = NetProps.GetPropInt(activator, "m_nButtons");
 	MarkForPurge(activator);
 	SDKHook("SDKHook_OnTakeDamage", OnTakeDamage);
 	activator.DisableDraw();
@@ -259,7 +261,7 @@ function OnGameFrame()
 	iLastHealth = iHealth;
 	local iHeldButtons = NetProps.GetPropInt(hPlayer, "m_nButtons");
 
-	if (iHeldButtons & 2048 && !(NetProps.GetPropInt(hPlayer, "m_afButtonLast") & 2048))
+	if (iHeldButtons & 2048 && !(iPreviousHeldButtons & 2048))
 	{
 		if (iAbilityNumber < iAbilityCount - 1)
 			iAbilityNumber++;
@@ -267,6 +269,8 @@ function OnGameFrame()
 		else
 			iAbilityNumber = 0;
 	}
+
+	iPreviousHeldButtons = iHeldButtons;
 
 	local cAbility = aAbilities[iAbilityNumber];
 
@@ -345,7 +349,7 @@ function DisplayAbilities()
 		x = 0.1,
 		y = -1,
 		color = Vector(0, 255, 255),
-		holdtime = 0.06
+		holdtime = 0.07
 	});
 	MarkForPurge(hText);
 	hText.AcceptInput("Display", "", hPlayer, null);
