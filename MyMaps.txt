@@ -1,7 +1,10 @@
 A list of all the maps I have made
 
-Released
+Released maps with issues
 - ze_the_weird_forest_v2_4
+- ze_pizza_tower_v1_beta
+
+Released
 - ze_road_to_heaven_v4_3
 - ze_terraria_v3_2
 - ze_never_gonna_give_you_up_v2
@@ -10,7 +13,6 @@ Released
 - ze_lethal_company_v1_2_beta
 - ze_minecraft_journey_v1_test_2
 - ze_speedmen_v2
-- ze_pizza_tower_v1_beta
 - ze_prop_hunt_v2_final
 - ze_atons_dream_v2_1
 - ze_skibidi_racers_v4
@@ -25,9 +27,9 @@ Released collab maps
 In progress
 - ze_vermintide_2a
 - ze_peak
+- ze_piecent_chickens_v1
 
 Unreleased / scrapped
 - ze_expedition_33
-- ze_piecent_chickens_v1
 - ze_dungeon_defenders_v1
 - ze_boatescape_defend_v1
