@@ -1,7 +1,12 @@
+// Consts for teleportation
 const flZombieTeleportDelay = 5.0;
 const strZombieTeleportParticle = "zombieteleport1";
 const flZombieTeleportSize = 128.0;
 const flZombieTeleportParticleDuration = 10.0;
+
+// Speed
+const flZombieSpeedMultiplier = 1.5;
+const flZombieSpeedDuration   = 10.0;
 
 enum eTeams
 {
@@ -12,6 +17,62 @@ enum eTeams
 iMaxPlayers <- MaxClients().tointeger(),
 flWorldBottom <- NetProps.GetPropVector(Entities.First(), "m_WorldMins").z;
 
+self.ConnectOutput("OnStartTouch", "OnStartTouch");
+function OnStartTouch()
+{
+	if (!activator || !activator.IsPlayer())
+		return;
+
+	local iTeam = activator.GetTeam();
+
+	// Human touched
+	if (iTeam == 3)
+	{
+		self.AcceptInput("FireUser1", "", null, null);
+		return;
+	}
+
+	// Zombie touched
+	if (iTeam == 2)
+	{
+		self.AcceptInput("FireUser2", "", null, null);
+
+		KillAllHumans();
+
+		self.Kill();
+	}
+}
+
+function KillAllHumans()
+{
+	for (local i = 1; i <= MaxClients(); i++)
+	{
+		local hPlayer = PlayerInstanceFromIndex(i);
+		if (!hPlayer || !hPlayer.IsAlive())
+			continue;
+
+		if (hPlayer.GetTeam() == 3)
+		{
+			hPlayer.TakeDamage(hPlayer.GetHealth() + 100, 0, null);
+		}
+	}
+}
+
+function KillAllZombies()
+{
+	for (local i = 1; i <= MaxClients(); i++)
+	{
+		local hPlayer = PlayerInstanceFromIndex(i);
+		if (!hPlayer || !hPlayer.IsAlive())
+			continue;
+
+		if (hPlayer.GetTeam() == 2)
+		{
+			hPlayer.TakeDamage(hPlayer.GetHealth() + 100, 0, null);
+		}
+	}
+}
+
 function OnPostSpawn()
 {
 	MarkForPurge();
@@ -21,10 +82,22 @@ function OnPostSpawn()
 	hBigNetwork.Kill();
 }
 
+function SetZombieSpeed(flMultiplier)
+{
+	foreach (hPlayer in GetAliveTeamPlayers(eTeams.iZombie))
+	{
+		NetProps.SetPropFloat(hPlayer, "m_flLaggedMovementValue", flMultiplier);
+	}
+}
+
+function ResetZombieSpeed()
+{
+	SetZombieSpeed(1.1);
+}
+
 function TeleportZombies(strDestination)
 {
 	local hDestination = Entities.FindByName(null, strDestination);
-
 	if (!hDestination)
 		return;
 
@@ -40,15 +113,19 @@ function TeleportZombies(strDestination)
 		hullmax = Vector(flMaxs, flMaxs),
 		mask = 1 | 2 | 8 | 16384 | 65536
 	};
+
 	TraceHull(tTraceInfo);
 	vOrigin = tTraceInfo.endpos;
 
 	SpawnZombieTeleportParticle(vOrigin);
 
-	local qaAngle = hClosestDestination.GetAbsAngles(){z = 0};
+	local qaAngle = hDestination.GetAbsAngles(){ z = 0 };
 
-	EntFireByHandle(self, "RunScriptCode", "TeleportZombiesDelay(Vector(" + vOrigin.x + ", " + vOrigin.y + ", " + vOrigin.z + "), QAngle(" + qaAngle.x + ", " + qaAngle.y + "))", flZombieTeleportDelay, hPlayer, null);
+	ResetZombieSpeed();
+	TeleportZombiesDelay(vOrigin, qaAngle);
 }
+
+
 
 function TeleportZombiesNearestHumans(strDestination)
 {
@@ -100,7 +177,7 @@ function TeleportZombiesNearestHumans(strDestination)
 
 	local qaAngle = hClosestDestination.GetAbsAngles(){z = 0};
 
-	EntFireByHandle(self, "RunScriptCode", "TeleportZombiesDelay(Vector(" + vOrigin.x + ", " + vOrigin.y + ", " + vOrigin.z + "), QAngle(" + qaAngle.x + ", " + qaAngle.y + "))", flZombieTeleportDelay, hPlayer, null);
+	EntFireByHandle(self, "RunScriptCode", "TeleportZombiesDelay(Vector(" + vOrigin.x + ", " + vOrigin.y + ", " + vOrigin.z + "), QAngle(" + qaAngle.x + ", " + qaAngle.y + "))", flZombieTeleportDelay, null, null);
 }
 
 function SpawnZombieTeleportParticle(vOrigin)
@@ -118,9 +195,18 @@ function SpawnZombieTeleportParticle(vOrigin)
 
 function TeleportZombiesDelay(vOrigin, qaAngle)
 {
-	foreach (iPlayerIndex, hPlayer in GetAliveTeamPlayers(eTeams.iZombie))
-		TeleportZombie(activator, vOrigin, qaAngle);
+	foreach (hPlayer in GetAliveTeamPlayers(eTeams.iZombie))
+	{
+		TeleportZombie(hPlayer, vOrigin, qaAngle);
+	}
+
+	// Apply speed boost AFTER teleport
+	SetZombieSpeed(flZombieSpeedMultiplier);
+
+	// Schedule speed reset
+	EntFireByHandle(self, "RunScriptCode", "ResetZombieSpeed()", flZombieSpeedDuration, null, null);
 }
+
 
 function TeleportZombie(hPlayer, vOrigin, qaAngle)
 {
